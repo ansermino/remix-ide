@@ -34,43 +34,38 @@ module.exports = class RighthandPanel {
       tabbedMenuViewport: null,
       dragbar: null
     }
-    self._components = {}
-
-    self._components.pluginManager = new PluginManager(self._opts.pluginAPI, self._events)
-    const tabEvents = {compiler: self._events.compiler, app: self._events.app, rhp: self.event}
-    self._components.tabbedMenu = new TabbedMenu(self._api, tabEvents)
-    const compileTab = new CompileTab(self._api, self._events, self._opts)
-    const runTab = new RunTab(self._api, self._events, self._opts)
-    const settingsTab = new SettingsTab(self._api, self._events, self._opts)
-    const analysisTab = new AnalysisTab(self._api, self._events, self._opts)
-    const debuggerTab = new DebuggerTab(self._api, self._events, self._opts)
-    const supportTab = new SupportTab(self._api, self._events, self._opts)
-
-    const optionViews = self._components.tabbedMenu.renderViewport()
-    self._view.dragbar = yo`<div id="dragbar" class=${css.dragbar}></div>`
-    const options = self._components.tabbedMenu.render()
-    self._view.element = yo`
-      <div id="righthand-panel" class=${css.righthandpanel}>
-        ${self._view.dragbar}
-        <div id="header" class=${css.header}>
-          ${options}
-          ${optionViews}
-        </div>
-      </div>`
-    self._components.tabbedMenu.addTab('Compile', 'compileView', compileTab.render())
-    self._components.tabbedMenu.addTab('Run', 'runView', runTab.render())
-    self._components.tabbedMenu.addTab('Settings', 'settingsView', settingsTab.render())
-    self._components.tabbedMenu.addTab('Analysis', 'staticanalysisView', analysisTab.render())
-    self._components.tabbedMenu.addTab('Debugger', 'debugView', debuggerTab.render())
-    self._components.tabbedMenu.addTab('Support', 'supportView', supportTab.render())
-    self._components.tabbedMenu.selectTabByTitle('Compile')
-
+    self._components = {
+      pluginManager: new PluginManager(self._opts.pluginAPI, self._events),
+      tabbedMenu: new TabbedMenu(self._api, self._events),
+      compileTab: new CompileTab(self._api, self._events, self._opts),
+      runTab: new RunTab(self._api, self._events, self._opts),
+      settingsTab: new SettingsTab(self._api, self._events, self._opts),
+      analysisTab: new AnalysisTab(self._api, self._events, self._opts),
+      debuggerTab: new DebuggerTab(self._api, self._events, self._opts),
+      supportTab: new SupportTab(self._api, self._events, self._opts)
+    }
     self.event.register('plugin-loadRequest', json => {
       const tab = new PluginTab({}, self._events, json)
       const content = tab.render()
       self._components.tabbedMenu.addTab(json.title, 'plugin', content)
       self._components.pluginManager.register(json, content)
     })
+
+    self._view.element = yo`
+      <div id="righthand-panel" class=${css.righthandpanel}>
+        ${self._view.dragbar}
+        <div id="header" class=${css.header}>
+          ${self._components.tabbedMenu.render()}
+          ${self._components.tabbedMenu.renderViewport()}
+        </div>
+      </div>`
+    self._components.tabbedMenu.addTab('Compile', 'compileView', self._components.compileTab.render())
+    self._components.tabbedMenu.addTab('Run', 'runView', self._components.runTab.render())
+    self._components.tabbedMenu.addTab('Settings', 'settingsView', self._components.settingsTab.render())
+    self._components.tabbedMenu.addTab('Analysis', 'staticanalysisView', self._components.analysisTab.render())
+    self._components.tabbedMenu.addTab('Debugger', 'debugView', self._components.debuggerTab.render())
+    self._components.tabbedMenu.addTab('Support', 'supportView', self._components.supportTab.render())
+    self._components.tabbedMenu.selectTabByTitle('Compile')
   }
   // showDebugger () {
   //   const self = this
